@@ -47,7 +47,7 @@ button{font:inherit;color:inherit;cursor:pointer}
 .card{flex:1;min-width:0;border-radius:26px;padding:28px 24px;display:flex;flex-direction:column;justify-content:center;gap:18px;overflow-y:auto;background:var(--surface);border:1px solid var(--line);position:relative}
 .card.anim{animation:in .2s ease-out}
 @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion:reduce){.card.anim{animation:none}.sheet{transition:none!important}}
+@media (prefers-reduced-motion:reduce){.card.anim{animation:none}.sheet{transition:none!important}.vbs.drama .vb,.vbs.nudge .vb,.vb.lock{animation:none!important;opacity:1;transform:none}}
 .big{font-family:var(--display);font-weight:700;font-size:clamp(25px,6.3vw,31px);line-height:1.22;letter-spacing:-.015em;margin:0;text-wrap:pretty}
 .zh{font-size:15.5px;line-height:1.6;color:var(--muted);margin:0}
 .zhon .zh{display:block}.zh{display:none}
@@ -74,6 +74,17 @@ mark{background:var(--mark);color:#15131C;border-radius:6px;padding:0 6px}
 .vbs{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
 .vb{min-height:48px;border-radius:14px;border:2.5px solid #15131C;background:#15131C;color:var(--mark);font-family:var(--display);font-weight:800;font-size:16.5px;padding:4px 6px;line-height:1.1}
 .vb small{display:block;font-family:var(--body);font-weight:400;font-size:12px;opacity:.8}.vbs.has .vb:not(.on){opacity:.4}.vb.on::before{content:"✓ "}
+/* the guess: options drum in one by one, a nudge if nobody picks, then the pick locks in for a beat before the story moves on */
+.vbs.drama{pointer-events:none}.vbs.drama .vb{opacity:0;transform:translateY(14px) scale(.92);animation:vpop .46s cubic-bezier(.18,1.5,.4,1) forwards}
+.vbs.drama .vb:nth-child(1){animation-delay:.55s}.vbs.drama .vb:nth-child(2){animation-delay:1.05s}.vbs.drama .vb:nth-child(3){animation-delay:1.55s}
+@keyframes vpop{to{opacity:1;transform:none}}
+.vbs.nudge .vb{animation:wig .55s ease-in-out}.vbs.nudge .vb:nth-child(2){animation-delay:.09s}.vbs.nudge .vb:nth-child(3){animation-delay:.18s}
+@keyframes wig{25%{transform:translateX(-4px) rotate(-1.5deg)}75%{transform:translateX(4px) rotate(1.5deg)}}
+.vb{transition:opacity .25s}.vb.lock{background:var(--mark);color:#15131C;border-color:#15131C;animation:lockin .36s ease-out}
+@keyframes lockin{40%{transform:scale(1.05)}}
+.card.flyer .vb.lock{background:#fff}
+.vb .lk{float:right;font-style:normal;font-family:var(--body);font-size:11.5px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:#15131C;color:var(--mark);border-radius:999px;padding:3px 9px;margin:1px 0 0 8px}
+.vote:not(.col) .vb .lk{display:block;float:none;width:max-content;margin:5px auto 0}
 .rows li.me{outline:2.5px solid var(--mark);outline-offset:7px;border-radius:10px}
 .youline{margin:6px 0 0;font-family:var(--display);font-weight:800;font-size:clamp(20px,5.4vw,24px);color:var(--mark)}
 .card:not(.stat) .youline{display:inline-block;align-self:flex-start;margin-top:12px;background:var(--mark);color:#15131C;padding:5px 12px 6px;border-radius:12px;font-size:17px;line-height:1.25}
@@ -340,7 +351,8 @@ function save(){store.set("st",st)}
 
 /* A card may carry a vote: {ask?, opts[3], optsZh[3], right?}. On the opening card it is a guess ("call it"), shown as a column.
    The card marked reveal:true then answers the guess: "You called it." or the player's own words back. c.you / c.youZh override a line. */
-function voteHtml(c,col){const v=c.vote;if(!v)return "";return `<div class="vote ${col?"col":""}">${v.ask?`<p class="vq">${esc(v.ask)}</p>${zhp(v.askZh)}`:""}<div class="vbs ${st.vote!=null?"has":""}">${v.opts.map((o,i)=>`<button type="button" class="vb ${st.vote===i?"on":""}" data-vote="${i}" aria-pressed="${st.vote===i}">${esc(o)}${zh?`<small>${esc(v.optsZh[i])}</small>`:""}</button>`).join("")}</div></div>`}
+const RM=matchMedia("(prefers-reduced-motion: reduce)").matches;let DR={},dT=[],lockT=null;
+function voteHtml(c,col){const v=c.vote;if(!v)return "";const ci=EP.cards.indexOf(c),dr=st.vote==null&&!DR[ci]&&!RM;DR[ci]=1;return `<div class="vote ${col?"col":""}">${v.ask?`<p class="vq">${esc(v.ask)}</p>${zhp(v.askZh)}`:""}<div class="vbs ${st.vote!=null?"has":""} ${dr?"drama":""}">${v.opts.map((o,i)=>`<button type="button" class="vb ${st.vote===i?"on":""}" data-vote="${i}" aria-pressed="${st.vote===i}">${esc(o)}${zh?`<small>${esc(v.optsZh[i])}</small>`:""}</button>`).join("")}</div></div>`}
 function youLine(c){const v=EP.cards[0].vote;if(!c.reveal||!v||v.right==null||st.vote==null)return "";const i=st.vote,ok=i===v.right;
   const en=(c.you&&c.you[i])||(ok?"You called it.":`You said “${v.opts[i]}.” Not this time.`),z=(c.youZh&&c.youZh[i])||(ok?"你猜对了。":`你猜的是“${v.optsZh[i]}”。这次没猜中。`);
   return `<p class="youline ${ok?"hit":""}">${esc(en)}</p>${zhp(z)}`}
@@ -419,22 +431,27 @@ function fakeoff(){const f=EP.fakeoff,v=st.fo||{},step=v.big==null?0:v.me==null?
 const R={fakeoff,comments,receipts,boss,cop,sat,done};
 
 function canNext(){const k=S[st.i].k;if(k==="done")return true;return st.i<S.length-1}
-function label(){const k=S[st.i].k;if(k==="story")return st.i===NSTORY-1?(EP.fakeoff?"Cast your vote":"See the comments"):"Next";if(k==="fakeoff")return "See the comments";if(k==="comments")return "See the receipts";if(k==="receipts")return "2 quick questions";
+function needPick(){const s=S[st.i];return s.k==="story"&&!!EP.cards[s.i].vote&&st.vote==null}
+function label(){const k=S[st.i].k;if(needPick())return "Skip";if(k==="story")return st.i===NSTORY-1?(EP.fakeoff?"Cast your vote":"See the comments"):"Next";if(k==="fakeoff")return "See the comments";if(k==="comments")return "See the receipts";if(k==="receipts")return "2 quick questions";
   if(k==="boss")return st.boss&&st.boss.done?"Next question":"Skip for now";if(k==="cop")return st.cop&&st.cop.done?"Continue":"Skip for now";if(k==="sat")return st.sat&&st.sat.done?"Finish":"Skip";return EP.n<12?"Next episode":"All episodes"}
+function armVote(){dT.forEach(clearTimeout);dT=[];const b=document.querySelector(".vbs:not(.has)");if(!b)return;
+  const nudge=()=>dT.push(setTimeout(()=>{if(document.contains(b)&&st.vote==null&&!RM){b.classList.add("nudge");setTimeout(()=>b.classList.remove("nudge"),900)}},5000));
+  if(b.classList.contains("drama"))dT.push(setTimeout(()=>{b.classList.remove("drama");nudge()},2050));else nudge()}
+function endDrama(){const b=document.querySelector(".vbs.drama");if(!b)return false;b.classList.remove("drama");armVote();return true}
 function render(keep){
-  const s=S[st.i];$("view").innerHTML=s.k==="story"?story(EP.cards[s.i]):R[s.k]();
+  const s=S[st.i];$("view").innerHTML=s.k==="story"?story(EP.cards[s.i]):R[s.k]();armVote();
   if(keep)$("view").firstElementChild.classList.remove("anim");
   $("segs").innerHTML=S.map((x,i)=>`<i class="${i<=st.i?"on":""} ${i===NSTORY?"cut":""}"></i>`).join("");
   $("ep").textContent="S1 · E"+EP.n+" · "+(s.k==="story"?(s.i+1)+"/"+NSTORY:{fakeoff:"Vote",comments:"Comments",receipts:"Receipts",boss:"Question 1",cop:"Question 2",sat:"Hard Mode",done:"Done"}[s.k]);
   $("goal").innerHTML=THUMB[EP.n]?`<img src="${THUMB[EP.n]}" alt="">`:"";$("goal").classList.toggle("got",!!st.unlocked);
-  $("prev").disabled=st.i===0;$("next").disabled=!canNext();$("next").textContent=label();$("next").classList.toggle("ghost",NEED.indexOf(s.k)>-1&&!(st[s.k]&&st[s.k].done));
+  $("prev").disabled=st.i===0;$("next").disabled=!canNext();$("next").textContent=label();$("next").classList.toggle("ghost",(NEED.indexOf(s.k)>-1&&!(st[s.k]&&st[s.k].done))||needPick());
   $("stage").classList.toggle("zhon",zh);$("zh").setAttribute("aria-pressed",zh);
   $("live").textContent=$("view").innerText.slice(0,300);
   if(st.i>st.max){st.max=st.i;track("reach",{i:st.i})}
   save();
 }
 function reset(){st={i:0,heart:null,boss:null,cop:null,sat:null,max:st.max,completed:st.completed,seen:st.seen,unlocked:st.unlocked,shiny:st.shiny,satEver:st.satEver||!!st.sat};render()}
-function go(d){rv=null;if(d>0&&S[st.i].k==="done"){EP.n<12?openEp(epCode(EP.n+1)):goHome();return}const n=st.i+d;if(n<0||n>=S.length)return;if(d>0&&!canNext())return;const k0=S[st.i].k;if(d>0&&NEED.indexOf(k0)>-1&&!(st[k0]&&st[k0].done))track("skip",{q:k0});st.i=n;if(S[n].k==="done"&&!st.completed){st.completed=true;track("complete")}render()}
+function go(d){rv=null;if(lockT){clearTimeout(lockT);lockT=null}if(d>0&&S[st.i].k==="done"){EP.n<12?openEp(epCode(EP.n+1)):goHome();return}const n=st.i+d;if(n<0||n>=S.length)return;if(d>0&&!canNext())return;const k0=S[st.i].k;if(d>0&&NEED.indexOf(k0)>-1&&!(st[k0]&&st[k0].done))track("skip",{q:k0});st.i=n;if(S[n].k==="done"&&!st.completed){st.completed=true;track("complete")}render()}
 
 /* ---------- word sheet ---------- */
 let lastFocus=null,hideT=null;
@@ -476,6 +493,7 @@ function closeWord(){if($("sheet").hidden)return;$("sheet").classList.remove("on
 /* ---------- events ---------- */
 on(document,"click",e=>{
   const t=e.target.closest("button,a");
+  if(!t&&e.target.closest(".card")&&endDrama())return;
   if(t){
     if(t.id==="sh-x"||t.id==="sh-ok"){closeWord();return}
     if(t.dataset.say){speak(t.dataset.say);return}
@@ -485,7 +503,7 @@ on(document,"click",e=>{
     if(t.dataset.goq){const k=qLeft()[0];if(k){st.i=S.findIndex(x=>x.k===k);render()}return}
     if(t.dataset.fo){const p=t.dataset.fo.split("|");st.fo=st.fo||{};st.fo[p[0]]=+p[1];track("fakeoff",{a:p[0],n:+p[1]});render(true);$("view").firstElementChild.scrollTop=0;return}
     if(t.dataset.foc){if(st.fo)st.fo[t.dataset.foc]=null;render(true);return}
-    if(t.dataset.vote!=null){st.vote=+t.dataset.vote;track("vote",{i:st.vote});go(1);return}
+    if(t.dataset.vote!=null){if(lockT)return;st.vote=+t.dataset.vote;track("vote",{i:st.vote});dT.forEach(clearTimeout);const b=t.parentElement;b.classList.remove("drama","nudge");b.classList.add("has");b.querySelectorAll(".vb").forEach(x=>{x.classList.remove("on","lock");x.setAttribute("aria-pressed","false");const l=x.querySelector(".lk");if(l)l.remove()});t.classList.add("on","lock");t.setAttribute("aria-pressed","true");t.insertAdjacentHTML("beforeend",'<em class="lk">Locked in</em>');$("next").textContent=label();$("next").classList.remove("ghost");lockT=setTimeout(()=>{lockT=null;go(1)},RM?250:750);return}
     if(t.dataset.hi){const p=t.dataset.hi.split("|"),q=p[0],i=+p[1];st.hints=st.hints||{};const l=st.hints[q]=st.hints[q]||[],at=l.indexOf(i);if(at>-1)l.splice(at,1);else{l.push(i);st.hintUsed=st.hintUsed||{};st.hintUsed[q]=true;track("hint",{q:q,i:i})}render(true);return}
     if(t.dataset.tw){openWord(t.dataset.tw);return}
     if(t.dataset.w){openWord(t.dataset.w);return}
