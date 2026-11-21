@@ -181,6 +181,9 @@ mark{background:var(--mark);color:#15131C;border-radius:6px;padding:0 6px}
 .stkcap .tl{display:block;margin-top:6px;font-family:var(--display);font-weight:700;font-size:16.5px;color:var(--ink)}
 .qrow{display:flex;flex-wrap:wrap;gap:6px;justify-content:center}
 .qp{font-size:13px;font-weight:700;border-radius:999px;padding:5px 11px;border:1.5px solid var(--line);color:var(--muted)}
+button.qp{cursor:pointer;background:var(--surface);font:inherit;font-size:13px;font-weight:700;min-height:40px;padding:0 13px}button.qp i{font-style:normal;opacity:.55;margin-left:2px}@media (hover:hover){button.qp:hover{border-color:var(--ink)}}
+.qtip{margin:6px 0 0;font-size:13px;color:var(--muted);text-align:center}
+.hintb.redo{align-self:center;margin-top:12px}
 .qp.ok{border-color:color-mix(in srgb,var(--good) 45%,var(--line));color:var(--good);background:color-mix(in srgb,var(--good) 9%,var(--surface))}
 .shelf{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;max-width:348px}
 .slot{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-family:var(--display);font-weight:800;font-size:15px;color:var(--muted);background:var(--paper);border:1.5px dashed var(--line);overflow:hidden}
@@ -373,25 +376,25 @@ function boss(){const b=EP.boss,a=st.boss;
   <p class="lead">${esc(b.ctx)}</p>${zhp(b.ctxZh)}
   <div class="copm">${av(b.who,b.mood)}<p class="say">${fmt(b.line)}</p></div>${zhp(b.lineZh)}
   <div class="opts">${b.opts.map((o,i)=>{const dn=a&&a.done,h=hinted("boss",i);return `<div class="optrow"><button type="button" class="opt ${dn&&o.ok?"ok":""} ${a&&a.last===i&&!o.ok&&!dn?"no":""}" data-boss="${i}" ${dn?"disabled":""}><b>${esc(o.w)}</b>${dn||h?`<small>${esc(o.d)}</small>`:""}</button>${dn?"":hintBtn("boss",i,o.w)}</div>`}).join("")}</div>
-  ${a&&a.done?`<p class="fb ok"><b>✓</b>${esc(b.win)}</p>${zhp(b.winZh)}`:a&&a.last!=null?`<p class="fb no"><b>Try again</b>${esc(b.lose)}</p>${zhp(b.loseZh)}`:""}</article>`;
+  ${a&&a.done?`<p class="fb ok"><b>✓</b>${esc(b.win)}</p>${zhp(b.winZh)}`:a&&a.last!=null?`<p class="fb no"><b>Try again</b>${esc(b.lose)}</p>${zhp(b.loseZh)}`:""}${a&&a.done?`<button type="button" class="hintb redo" data-redo="boss">↻ Try again</button>`:""}</article>`;
 }
 function cop(){const c=EP.cop,a=st.cop,done=!!(a&&a.done),tried=a?(a.tried||[a.last]):[];
   return `<article class="card sec anim"><p class="eyebrow">Question 2 of 2</p>${unlockCue()}<h1 class="h">${esc(c.h)}</h1><p class="lead">${esc(done?"Solved. Here is why each one is right or wrong.":c.ask)}</p><p class="zh">${esc(c.hZh)}：${esc(c.askZh)}</p>
   ${c.items.map((m,i)=>{const picked=tried.indexOf(i)>-1;const body=done&&m.wrong?fmt(m.fix):fmt(m.en).replace(/<button[^>]*>([^<]*)<\/button>/g,"<b>$1</b>");
     const kind=m.wrong?"ok":done?"fine":"no";
     const w=(m.en.match(/\[\[([^\]|]+)/)||[])[1],x=WORDS[w];
-    return `<div class="copm">${av(m.who,m.mood)}<div><div class="optrow"><button type="button" class="bub ${done&&m.wrong?"ok":""} ${picked&&!m.wrong&&!done?"no":""}" data-cop="${i}" ${done?"disabled":""}>${body}</button>${done||!x?"":hintBtn("cop",i,w)}</div>${!done&&x&&hinted("cop",i)?`<p class="hl"><b>${esc(w)}</b> <i>=</i> ${esc(x.short||"")}</p>`:""}${done||picked?`<div class="cnote ${kind}"><p>${esc(m.note)}</p>${zhp(m.noteZh)}</div>`:""}</div></div>`}).join("")}</article>`;
+    return `<div class="copm">${av(m.who,m.mood)}<div><div class="optrow"><button type="button" class="bub ${done&&m.wrong?"ok":""} ${picked&&!m.wrong&&!done?"no":""}" data-cop="${i}" ${done?"disabled":""}>${body}</button>${done||!x?"":hintBtn("cop",i,w)}</div>${!done&&x&&hinted("cop",i)?`<p class="hl"><b>${esc(w)}</b> <i>=</i> ${esc(x.short||"")}</p>`:""}${done||picked?`<div class="cnote ${kind}"><p>${esc(m.note)}</p>${zhp(m.noteZh)}</div>`:""}</div></div>`}).join("")}${a&&a.done?`<button type="button" class="hintb redo" data-redo="cop">↻ Try again</button>`:""}</article>`;
 }
 function sat(){const q=EP.sat,a=st.sat;
   return `<article class="card sec anim"><p class="eyebrow">Optional · SAT-style question</p><h1 class="h">${esc(q.h)}</h1><p class="hm">Right on the first try: your sticker turns shiny.</p><p class="zh">${esc(q.hZh)}（SAT 题型）。选做，可以直接跳过。一次答对，贴纸会变成闪光的。</p>
   <p class="pass">${fmt(q.passage)}</p>${zhp(q.passageZh)}
-  <div class="opts">${q.choices.map((o,i)=>`<button type="button" class="opt ${a&&a.done&&o.ok?"ok":""} ${a&&a.tried&&a.tried.indexOf(i)>-1&&!o.ok?"no":""}" data-sat="${i}" ${a&&a.done?"disabled":""}><b>${"ABCD"[i]}. ${esc(o.w)}</b>${a&&(a.done||a.tried.indexOf(i)>-1)?`<small>${esc(o.why)}</small>${zhp(o.whyZh)}`:""}</button>`).join("")}</div></article>`;
+  <div class="opts">${q.choices.map((o,i)=>`<button type="button" class="opt ${a&&a.done&&o.ok?"ok":""} ${a&&a.tried&&a.tried.indexOf(i)>-1&&!o.ok?"no":""}" data-sat="${i}" ${a&&a.done?"disabled":""}><b>${"ABCD"[i]}. ${esc(o.w)}</b>${a&&(a.done||a.tried.indexOf(i)>-1)?`<small>${esc(o.why)}</small>${zhp(o.whyZh)}`:""}</button>`).join("")}</div>${a&&a.done?`<button type="button" class="hintb redo" data-redo="sat">↻ Try again</button>`:""}</article>`;
 }
 const STICKER=STK[EP.code]||"",NEED=["boss","cop"];
 function unlockCue(){if(st.unlocked)return "";const n=qLeft().length;return `<p class="unl">${THUMB[EP.n]?`<img src="${THUMB[EP.n]}" alt="">`:"🔒"}<span>${n>1?"Answer both to unlock this sticker":"One more to unlock this sticker"}</span></p>${zhp(n>1?"两道题都答了，就能解锁这张贴纸。":"再答一道，就能解锁这张贴纸。")}`}
 function qLeft(){return NEED.filter(k=>!(st[k]&&st[k].done))}
 function checkUnlock(){if(!st.unlocked&&!qLeft().length){st.unlocked=true;track("unlock")}}
-function qPill(k,name){const a=st[k],ok=a&&a.done;return `<span class="qp ${ok?"ok":""}">${ok?"✓":"○"} ${esc(name)}${ok&&a.hint?" · with a hint":ok&&a.first?" · first try":""}</span>`}
+function qPill(k,name){const a=st[k],ok=a&&a.done,again=st.redone&&st.redone[k];return `<button type="button" class="qp ${ok?"ok":""}" data-jump="${k}" aria-label="${esc(name)}: ${ok?"done":"not done"}. Go to this question.">${ok?"✓":"○"} ${esc(name)}${ok&&a.hint?" · with a hint":ok&&a.first&&!again?" · first try":""} <i aria-hidden="true">›</i></button>`}
 function shelf(){const out=[];for(let n=1;n<=12;n++){let got=false;if(n===EP.n)got=!!st.unlocked;else{try{got=!!(JSON.parse(localStorage.getItem("rps_S01E"+String(n).padStart(2,"0")+"_st"))||{}).unlocked}catch(e){}}
   out.push(`<span class="slot ${got?"got":""} ${n===EP.n?"now":""}" aria-label="Episode ${n}: ${got?"sticker unlocked":"locked"}">${THUMB[n]?`<img src="${THUMB[n]}" alt="">`:n}</span>`)}
   return `<div class="shelf">${out.join("")}</div>`}
@@ -400,7 +403,7 @@ function done(){const nw=EP.words.filter(w=>!w.basic),left=qLeft(),open=!!st.unl
   <div class="stk ${open?"open":"locked"} ${open&&st.shiny?"shiny":""}">${STICKER?`<img src="${STICKER}" alt="${esc(EP.sticker.alt)}">${open&&st.shiny?`<span class="shine" style="--m:url('${STICKER}')" aria-hidden="true"></span>`:""}`:`<div class="badge"><div><small>${esc(EP.season.toUpperCase())}</small>${esc(EP.badge.line)}</div></div>`}${open?"":`<span class="lock" aria-hidden="true">🔒</span>`}</div>
   <p class="stkcap">${open?`<b>${st.shiny?"Shiny sticker unlocked":"Sticker unlocked"}</b>${esc(EP.sticker.name)}<span class="tl">${esc(EP.badge.line)}</span>`:`<b>Sticker locked</b>${left.length} question${left.length>1?"s":""} left. No rush.`}</p>${zhp(open?(st.shiny?"闪光贴纸已解锁。":"贴纸已解锁。")+EP.badge.lineZh:"贴纸还没解锁：还差 "+left.length+" 道题，随时可以回来做。")}
   ${open?"":`<button type="button" class="hintb" data-goq="1" style="align-self:center">Answer ${left.length>1?"them":"it"} to unlock</button>`}
-  <div class="qrow">${qPill("boss",EP.boss.h)}${qPill("cop",EP.cop.h)}${qPill("sat","Hard Mode")}</div>
+  <div class="qrow">${qPill("boss",EP.boss.h)}${qPill("cop",EP.cop.h)}${qPill("sat","Hard Mode")}</div><p class="qtip">Tap one to go back to it.</p>${zhp("点一下可以回到那道题，重新做。")}
   <div><p class="eyebrow" style="margin-bottom:8px">Season 1 stickers · ${have} of 12</p>${shelf()}</div>
   <div class="nextep"><p class="eyebrow">${EP.finale?"That’s a wrap":"Next episode"}</p><p>${esc(EP.next.en)}</p>${zhp(EP.next.zh)}${EP.next.ask?`<p class="nask">${esc(EP.next.ask)}</p>${zhp(EP.next.askZh)}`:""}<p class="note" style="font-family:var(--body);font-weight:400;font-size:14px;margin-top:6px">${EP.finale?"Season 2 is coming.":"Tap “Next episode” below to play it."}</p></div>
   <div><p class="eyebrow" style="margin-bottom:8px">${nw.length} ${EP.finale?"words from this season":"new words"}. Tap to review.</p><div class="wlist">${EP.words.map(w=>`<button type="button" class="w" data-w="${w.w}">${w.w}</button>`).join("")}</div></div></article>`;
@@ -430,7 +433,7 @@ function render(keep){
   if(st.i>st.max){st.max=st.i;track("reach",{i:st.i})}
   save();
 }
-function reset(){st={i:0,heart:null,boss:null,cop:null,sat:null,max:st.max,completed:st.completed,seen:st.seen,unlocked:st.unlocked,shiny:st.shiny};render()}
+function reset(){st={i:0,heart:null,boss:null,cop:null,sat:null,max:st.max,completed:st.completed,seen:st.seen,unlocked:st.unlocked,shiny:st.shiny,satEver:st.satEver||!!st.sat};render()}
 function go(d){rv=null;if(d>0&&S[st.i].k==="done"){EP.n<12?openEp(epCode(EP.n+1)):goHome();return}const n=st.i+d;if(n<0||n>=S.length)return;if(d>0&&!canNext())return;const k0=S[st.i].k;if(d>0&&NEED.indexOf(k0)>-1&&!(st[k0]&&st[k0].done))track("skip",{q:k0});st.i=n;if(S[n].k==="done"&&!st.completed){st.completed=true;track("complete")}render()}
 
 /* ---------- word sheet ---------- */
@@ -477,6 +480,8 @@ on(document,"click",e=>{
     if(t.id==="sh-x"||t.id==="sh-ok"){closeWord();return}
     if(t.dataset.say){speak(t.dataset.say);return}
     if(t.dataset.rv){rv=rv===t.dataset.rv?null:t.dataset.rv;if(rv)track("review",{w:rv.split("|")[1]});render(true);return}
+    if(t.dataset.jump){const n=S.findIndex(x=>x.k===t.dataset.jump);if(n>-1){rv=null;st.i=n;render()}return}
+    if(t.dataset.redo){const k=t.dataset.redo;if(k==="sat")st.satEver=true;st.redone=st.redone||{};st.redone[k]=true;st[k]=null;if(st.hints)delete st.hints[k];if(st.hintUsed)delete st.hintUsed[k];track("redo",{q:k});render();return}
     if(t.dataset.goq){const k=qLeft()[0];if(k){st.i=S.findIndex(x=>x.k===k);render()}return}
     if(t.dataset.fo){const p=t.dataset.fo.split("|");st.fo=st.fo||{};st.fo[p[0]]=+p[1];track("fakeoff",{a:p[0],n:+p[1]});render(true);$("view").firstElementChild.scrollTop=0;return}
     if(t.dataset.foc){if(st.fo)st.fo[t.dataset.foc]=null;render(true);return}
@@ -490,7 +495,7 @@ on(document,"click",e=>{
     if(t.dataset.heart!=null){const h=+t.dataset.heart;if(st.heart===h){st.heart=null;track("unheart",{i:h})}else{st.heart=h;track("heart",{i:h})}render(true);return}
     if(t.dataset.boss!=null){const i=+t.dataset.boss,ok=EP.boss.opts[i].ok;if(!st.boss){st.boss={first:ok,hint:!!(st.hintUsed&&st.hintUsed.boss)};track("boss",{first:ok?1:0,hint:st.boss.hint?1:0})}st.boss.last=i;if(ok){st.boss.done=true;st.boss.hint=!!(st.hintUsed&&st.hintUsed.boss);checkUnlock()}render(true);return}
     if(t.dataset.cop!=null){const i=+t.dataset.cop,ok=EP.cop.items[i].wrong;if(!st.cop){st.cop={first:ok,hint:!!(st.hintUsed&&st.hintUsed.cop),tried:[]};track("cop",{first:ok?1:0,hint:st.cop.hint?1:0})}st.cop.tried=st.cop.tried||[];if(st.cop.tried.indexOf(i)<0)st.cop.tried.push(i);st.cop.last=i;if(ok){st.cop.done=true;st.cop.hint=!!(st.hintUsed&&st.hintUsed.cop);checkUnlock()}render(true);return}
-    if(t.dataset.sat!=null){const i=+t.dataset.sat,ok=EP.sat.choices[i].ok;if(!st.sat){st.sat={first:ok,tried:[]};if(ok)st.shiny=true;track("sat",{first:ok?1:0})}if(st.sat.tried.indexOf(i)<0)st.sat.tried.push(i);if(ok)st.sat.done=true;render(true);return}
+    if(t.dataset.sat!=null){const i=+t.dataset.sat,ok=EP.sat.choices[i].ok;if(!st.sat){const firstEver=!st.satEver;st.sat={first:ok&&firstEver,tried:[]};st.satEver=true;if(ok&&firstEver)st.shiny=true;track("sat",{first:ok&&firstEver?1:0})}if(st.sat.tried.indexOf(i)<0)st.sat.tried.push(i);if(ok)st.sat.done=true;render(true);return}
     return;
   }
   if(e.target.id==="scrim"){closeWord();return}
