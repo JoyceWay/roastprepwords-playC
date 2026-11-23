@@ -97,12 +97,19 @@ mark{background:var(--mark);color:#15131C;border-radius:6px;padding:0 6px}
 @keyframes vpulse{45%{transform:scale(1.16)}}
 .card.flyer .vcall{color:#15131C;font-size:19px}.card.flyer .vcall .vct{background:#15131C;color:var(--mark);border-radius:8px;padding:2px 9px}.card.flyer .vcall i{color:#15131C}.card.flyer .vcall.saved{color:#15131C;font-size:17px}
 .card.flyer .vq{font-size:17px;font-weight:700}
-.vcall .vct{display:inline-block}.vcall.gut .vct{animation:lockin .4s ease-out}.vcall.gut i{animation:bob .9s ease-in-out 3}
+/* the instruction takes the yellow of the options it points at, so it never reads as one more white line of the story */
+.vcall .vct{display:inline-block;color:var(--mark)}.vcall.gut .vct{animation:lockin .4s ease-out}.vcall.gut i{animation:bob .9s ease-in-out 3}
 .vcall.saved{color:#DCE2FF;animation:fadein .3s}@keyframes fadein{from{opacity:0}}
 .card.hook .vcz{margin-top:-4px}
 .vb{position:relative}.vb .lk{position:absolute;top:-10px;right:10px;font-style:normal;font-family:var(--body);font-size:11px;line-height:1;font-weight:800;letter-spacing:.07em;text-transform:uppercase;background:#15131C;color:var(--mark);border:1.5px solid var(--mark);border-radius:999px;padding:4px 8px;white-space:nowrap}
 .rows li.me{outline:2.5px solid var(--mark);outline-offset:7px;border-radius:10px}
 .youline{margin:6px 0 0;font-family:var(--display);font-weight:800;font-size:clamp(20px,5.4vw,24px);color:var(--mark)}
+.youline .ys{display:block;font-family:var(--body);font-weight:700;font-size:13.5px;line-height:1.3;letter-spacing:0;opacity:.74;margin-bottom:2px}.youline .yr{display:block}.card.stat .youline .ys{color:#fff}
+/* the idea card: one named idea in plain words, an everyday case, and what it does not mean */
+.card.idea .ie,.card.idea .ih{font-family:var(--body);font-weight:800;font-size:12px;line-height:1;letter-spacing:.13em;text-transform:uppercase;opacity:.62;margin:0 0 8px}.card.idea .ih{margin:15px 0 5px}
+.card.idea .big{font-size:clamp(25px,6.6vw,32px);margin-bottom:9px}.card.idea .il{font-family:var(--display);font-weight:700;font-size:clamp(17.5px,4.7vw,21px);line-height:1.3;margin:0;text-wrap:pretty}.card.idea .zh{font-size:14.5px;line-height:1.5;margin-top:2px}
+.card.idea{overflow-y:auto}   /* safety net for very small phones with Chinese on: the card scrolls instead of cutting its last lines */
+@media (max-height:700px){.card.idea .ie{margin-bottom:4px}.card.idea .ih{margin:7px 0 2px}.card.idea .il{font-size:15px;line-height:1.22}.card.idea .big{font-size:21px;margin-bottom:4px}.card.idea .big+.zh{display:none!important}.card.idea .zh{font-size:12.5px;line-height:1.35;margin-top:1px}}
 .card:not(.stat) .youline{display:inline-block;align-self:flex-start;margin-top:12px;background:var(--mark);color:#15131C;padding:5px 12px 6px;border-radius:12px;font-size:17px;line-height:1.25}
 .vote.col .vbs{grid-template-columns:1fr}
 .card.hook .vote{margin-top:12px;align-self:stretch}.card.hook .vb{min-height:44px;font-size:16px;text-align:left;padding:6px 14px}
@@ -429,7 +436,8 @@ function voteHtml(c,col){const v=c.vote;if(!v)return "";const ci=EP.cards.indexO
   return `<div class="vote ${col?"col":""}">${v.ask?`<p class="vq">${esc(v.ask)}</p>${zhp(v.askZh)}`:""}${call}<div class="vbs ${st.vote!=null?"has":""} ${dr?"drama":""}">${v.opts.map((o,i)=>`<button type="button" class="vb ${st.vote===i?"on":""}" data-vote="${i}" aria-pressed="${st.vote===i}">${esc(o)}${zh?`<small>${esc(v.optsZh[i])}</small>`:""}${st.vote===i?PICK:""}</button>`).join("")}</div></div>`}
 function youLine(c){const v=EP.cards[0].vote;if(!c.reveal||!v||v.right==null||st.vote==null)return "";const i=st.vote,ok=i===v.right;
   const en=(c.you&&c.you[i])||(ok?"You called it.":`You said “${v.opts[i]}.” Not this time.`),z=(c.youZh&&c.youZh[i])||(ok?"你猜对了。":`你猜的是“${v.optsZh[i]}”。这次没猜中。`);
-  return `<p class="youline ${ok?"hit":""}">${esc(en)}</p>${zhp(z)}`}
+  const m=/^You said “(.+?)”\s*(.+)$/.exec(en);   /* two parts: what you picked (small), then the verdict or remark (large) */
+  return `<p class="youline ${ok?"hit":""}">${m?`<span class="ys">You said “${esc(m[1])}”</span><span class="yr">${esc(m[2])}</span>`:esc(en)}</p>${zhp(z)}`}
 const onCover=()=>!!EP.cover&&st.i===0&&!st.go;
 function cover(){const rv=EP.cards.findIndex(c=>c.reveal||c.you),open=!EP.tease||st.completed||(rv>=0&&st.max>=rv),t=open?[EP.title,EP.titleZh]:[EP.tease,EP.teaseZh];
   return `<article class="card cover anim"><img class="cvi" src="${EP.cover.src}" alt="${esc(EP.cover.alt||"")}"><div class="cvt"><p class="eyebrow">Season ${SN} · Episode ${EP.n}</p><h1 class="cvh">${esc(t[0])}</h1>${zhp(t[1])}<p class="cvm">A true story · ${NSTORY} cards · ${EP.words.filter(w=>!w.basic).length} SAT words</p></div></article>`}
@@ -447,6 +455,7 @@ function story0(c){const tr=tray(c),op="";
   if(c.t==="flyer") return `<article class="card flyer anim"><p class="eyebrow">⚠ ${esc(c.head)}</p><h2>${esc(c.name)}</h2><ul>${c.items.map(x=>`<li>${fmt(x)}</li>`).join("")}</ul>${zhp(c.zh)}${voteHtml(c)}</article>`;
   if(c.t==="stat") return `<article class="card stat anim${op}"><div class="txt"><p class="big">${fmt(c.en)}</p>${zhp(c.zh)}<ul class="rows">${c.rows.map((r,i)=>`<li class="${c.you&&!c.reveal&&st.vote===i?"me":""}"><b>${esc(r[0])}</b><div><span>${fmt(r[1])}</span>${zhp(r[2])}</div></li>`).join("")}</ul>${c.you&&!c.reveal&&st.vote!=null?`<p class="youline">${esc(c.you[st.vote])}</p>${zhp(c.youZh[st.vote])}`:youLine(c)}</div>${tr}</article>`;
   if(c.t==="point") return `<article class="card point anim${op}"><div class="txt"><p class="big">${fmt(c.en)}</p>${zhp(c.zh)}<p class="kick">${fmt(c.kick)}</p>${zhp(c.kickZh)}${c.stamp?`<span class="stamp">${esc(c.stamp)}</span>`:""}${youLine(c)}</div>${tr}</article>`;
+  if(c.t==="idea") return `<article class="card idea anim${op}"><div class="txt"><p class="ie">The idea</p><p class="big"><i class="term">${esc(c.term)}</i></p>${zhp(c.termZh)}<p class="il">${fmt(c.en)}</p>${zhp(c.zh)}<p class="ih">In real life</p><p class="il">${fmt(c.eg)}</p>${zhp(c.egZh)}${c.no?`<p class="ih">Careful</p><p class="il">${fmt(c.no)}</p>${zhp(c.noZh)}`:""}</div>${tr}</article>`;
   return `<article class="card anim${op}"><div class="txt"><p class="big">${fmt(c.en)}</p>${c.kick?"":zhp(c.zh)}${c.kick?`<p class="kick tk">${fmt(c.kick)}</p>${zhp(c.zh+(c.kickZh||""))}`:""}${youLine(c)}</div>${tr}</article>`;
 }
 /* review words in comments: already taught in the story; a lighter mark, tap for a one-line reminder */
