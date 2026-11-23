@@ -299,8 +299,21 @@ details.deep[open]>summary{margin-bottom:20px}
 .tag{display:inline-block;font-size:11.5px;font-weight:700;border-radius:6px;padding:2px 8px;background:rgba(255,255,255,.2);color:#fff;font-family:var(--body);letter-spacing:0}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 
-.chip.hm{min-width:40px;padding:0 10px;font-size:16px}
-.athome .nav,.athome #redo,.athome #home,.athome .segrow{display:none}
+.vh{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.chip.epk{display:inline-flex;align-items:center;gap:6px;min-width:0;flex:0 1 auto;padding:0 11px 0 13px;cursor:pointer}.chip.epk .ep{color:var(--ink)}.chip.epk i{font-style:normal;font-size:11px;color:var(--label)}
+@media (hover:hover){.chip.epk:not(:disabled):hover{border-color:var(--ink)}.prow:hover{border-color:var(--ink)}}
+.chip.epk:disabled{opacity:1;border-color:transparent;background:none;padding:0;cursor:default}.chip.epk:disabled i{display:none}.chip.epk:disabled .ep{color:var(--muted)}
+.athome .nav,.athome #redo,.athome .segrow{display:none}
+.pscrim{z-index:7}.psheet{z-index:8;padding:14px 14px 18px}
+.ph{display:flex;align-items:center;justify-content:space-between;margin:0 4px 8px}.ph b{font-family:var(--display);font-size:19px;font-weight:800}
+.px{width:44px;height:44px;border-radius:50%;border:0;background:var(--paper);color:var(--ink);font-size:17px;cursor:pointer}
+.plist{display:grid;gap:6px;margin-bottom:12px}
+.prow{display:grid;grid-template-columns:34px 1fr 18px;gap:10px;align-items:center;text-align:left;min-height:52px;padding:7px 10px;border-radius:14px;border:1.5px solid var(--line);background:var(--surface);color:inherit;font:inherit;cursor:pointer}
+.prow i{font-style:normal;font-family:var(--display);font-weight:800;font-size:16px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:var(--paper)}
+.prow b{display:block;font-size:15px;line-height:1.2;font-weight:700}.prow small{display:block;font-size:12px;color:var(--muted);line-height:1.35}
+.prow.cur{border-color:var(--label);background:color-mix(in srgb,var(--label) 9%,var(--surface))}.prow.cur i{background:var(--label);color:#fff}.prow.cur small:last-child{color:var(--label);font-weight:700}
+.prow u{text-decoration:none;font-weight:800;color:var(--label)}.prow.got u{color:var(--good)}
+.psheet #home{width:100%;min-height:46px;cursor:pointer}
 .athome .view{padding-bottom:16px}
 .hlist{display:grid;gap:8px}
 .hrow{display:grid;grid-template-columns:46px 1fr 18px;gap:12px;align-items:center;text-align:left;min-height:68px;padding:9px 12px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface);color:inherit;font:inherit}
@@ -309,19 +322,19 @@ details.deep[open]>summary{margin-bottom:20px}
 .hrow b{display:block;font-family:var(--display);font-weight:800;font-size:16.5px;line-height:1.2;margin:1px 0}
 .hrow small{display:block;font-size:12.5px;color:var(--muted);line-height:1.35}.hrow .hn{font-weight:700;letter-spacing:.05em;text-transform:uppercase;font-size:11px;color:var(--label)}
 .hrow em{font-style:normal;color:var(--muted)}.hrow.got em{color:var(--good)}.hrow u{text-decoration:none;font-weight:800;color:var(--label);font-size:18px}.hrow.got u{color:var(--good)}
-@media (max-width:380px){.stage:not(.athome) .bar .brand{display:none}}
+@media (max-width:440px){.stage:not(.athome) .bar .brand{display:none}}
 </style></head>
 <body>
 <main class="stage" id="stage">
   <div class="top">
     <div class="segrow"><div class="segs" id="segs" aria-hidden="true"></div><span class="goal" id="goal" aria-hidden="true"></span></div>
-    <div class="bar"><button class="chip hm" id="home" type="button" title="All episodes" aria-label="All episodes">☰</button><span class="brand">RoastPrep</span><span class="ep" id="ep"></span><span class="sp"></span>
+    <div class="bar"><span class="brand">RoastPrep</span><button class="chip epk" id="pick" type="button" aria-haspopup="dialog" aria-expanded="false" title="Choose an episode"><span class="vh">Choose an episode. Now: </span><span class="ep" id="ep"></span><i aria-hidden="true">▾</i></button><span class="sp"></span>
       <button class="chip" id="zh" type="button" aria-pressed="false" title="Show Chinese for parents">中文</button>
       <button class="chip" id="redo" type="button" title="Start over" aria-label="Start over">↺</button></div>
   </div>
   <div class="view" id="view"></div>
   <div class="nav"><button class="nbtn" id="prev" type="button" aria-label="Back">←</button><button class="nbtn" id="next" type="button">Next</button></div>
-  <div class="scrim" id="scrim"></div>
+  <div class="scrim" id="scrim"></div><div class="scrim pscrim" id="pscrim"></div><div class="sheet psheet" id="psheet" role="dialog" aria-modal="true" aria-label="Choose an episode" hidden></div>
   <div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sh-w" hidden></div>
   <p class="sr" id="live" aria-live="polite"></p>
 </main>
@@ -333,22 +346,45 @@ const epCode=n=>"S01E"+String(n).padStart(2,"0");
 const el=id=>document.getElementById(id), hesc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let cur=null;
 function prog(code){try{return JSON.parse(localStorage.getItem("rps_"+code+"_st"))||{}}catch(e){return {}}}
+function info(code){const ep=ALL[code],p=prog(code),has=!!p.unlocked;
+  const rv=ep.cards.findIndex(c=>c.reveal||c.you),open=!ep.tease||has||p.completed||(rv>=0&&p.max>=rv); // a title that gives the story away is shown only after the reveal has been seen
+  const status=has?(p.shiny?"Shiny sticker earned":"Sticker earned"):p.completed?"Finished · sticker still locked":p.max>0?"In progress":"";
+  return {ep,has,open,status,title:open?ep.title:ep.tease,titleZh:open?ep.titleZh:ep.teaseZh}}
 function home(){
   const zh=gget("zh",false);let got=0;
-  const rows=Object.keys(ALL).map(code=>{const ep=ALL[code],p=prog(code),has=!!p.unlocked;if(has)got++;
-    const rv=ep.cards.findIndex(c=>c.reveal||c.you),open=!ep.tease||has||p.completed||(rv>=0&&p.max>=rv); // a title that gives the story away is shown only after the reveal has been seen
-    const status=has?(p.shiny?"Shiny sticker earned":"Sticker earned"):p.completed?"Finished · sticker still locked":p.max>0?"In progress":"";
+  const rows=Object.keys(ALL).map(code=>{const {ep,has,open,status}=info(code);if(has)got++;
     const words=ep.finale?"Season review · no new words":ep.words.filter(w=>!w.basic).map(w=>w.w).join(" · ");
     return `<button type="button" class="hrow ${has?"got":""}" data-ep="${code}">${THUMB[ep.n]?`<img src="${THUMB[ep.n]}" alt="">`:"<i></i>"}<span><small class="hn">Episode ${ep.n}${status?` · <em>${status}</em>`:""}</small><b>${hesc(open?ep.title:ep.tease)}</b>${zh?`<small>${hesc(open?ep.titleZh:ep.teaseZh)}</small>`:""}<small>${hesc(words)}</small></span><u aria-hidden="true">${has?"✓":"›"}</u></button>`}).join("");
   const first=ALL[epCode(1)];
   el("view").innerHTML=`<article class="card sec home"><p class="eyebrow">Season 1 · 12 true stories</p><h1 class="h">${hesc(first.season)}</h1>${zh?`<p class="zh">${hesc(first.seasonZh)}</p>`:""}<p class="lead">Pick any episode. ${got} of 12 stickers earned.</p><div class="hlist">${rows}</div></article>`;
-  el("segs").innerHTML="";el("goal").innerHTML="";el("ep").textContent="Season 1";el("stage").classList.add("athome");el("stage").classList.toggle("zhon",zh);el("zh").setAttribute("aria-pressed",zh);
+  el("segs").innerHTML="";el("goal").innerHTML="";el("ep").textContent="Season 1";el("pick").disabled=true;el("stage").classList.add("athome");el("stage").classList.toggle("zhon",zh);el("zh").setAttribute("aria-pressed",zh);
 }
-function goHome(){if(cur){cur.stop();cur=null}gset("cur",null);home()}
-function openEp(code){if(!ALL[code])return;if(cur)cur.stop();el("stage").classList.remove("athome");gset("cur",code);cur=boot(ALL[code]);const v=el("view").firstElementChild;if(v)v.scrollTop=0}
+function goHome(){if(cur){cur.stop();cur=null}gset("cur",null);gset("via",null);home()}
+// how==="next": the player arrived with the "Next episode" button, so Back on the first screen returns to the episode they came from
+function openEp(code,how){if(!ALL[code])return;if(cur)cur.stop();el("stage").classList.remove("athome");el("pick").disabled=false;gset("cur",code);gset("via",how==="next"?code:null);cur=boot(ALL[code]);const v=el("view").firstElementChild;if(v)v.scrollTop=0}
+const cameByNext=()=>{const c=gget("cur",null);return !!c&&gget("via",null)===c&&ALL[c].n>1};
+function backLabel(){return cameByNext()?"Previous episode":"All episodes"}
+function leave(){if(cameByNext())openEp(epCode(ALL[gget("cur",null)].n-1));else goHome()}
+/* the episode picker: the header chip is always there; the list opens only when it is tapped */
+let pOpen=false,pT=null;
+function pick(show){const s=el("psheet"),c=el("pscrim");clearTimeout(pT);pOpen=show;el("pick").setAttribute("aria-expanded",show);
+  if(show){const zh=gget("zh",false),here=gget("cur",null);
+    s.innerHTML=`<div class="ph"><b>Season 1</b><button type="button" class="px" id="pclose" aria-label="Close">✕</button></div><div class="plist">${Object.keys(ALL).map(code=>{const {ep,has,status,title,titleZh}=info(code),me=code===here;
+      return `<button type="button" class="prow ${me?"cur":""} ${has?"got":""}" data-ep="${code}" ${me?'aria-current="true"':""}><i>${ep.n}</i><span><b>${hesc(title)}</b>${zh?`<small>${hesc(titleZh)}</small>`:""}<small>${me?"You are here":hesc(status||"Not started")}</small></span><u aria-hidden="true">${has?"✓":me?"":"›"}</u></button>`}).join("")}</div><button type="button" class="chip" id="home">Season home · your stickers</button>`;
+    s.hidden=false;void s.offsetWidth;s.classList.add("on");c.classList.add("on");const f=s.querySelector(".prow.cur")||s.querySelector(".prow");if(f){f.focus({preventScroll:true});s.scrollTop=Math.max(0,f.offsetTop-s.clientHeight/2+f.offsetHeight/2)}}
+  else{s.classList.remove("on");c.classList.remove("on");pT=setTimeout(()=>{s.hidden=true},230);if(!el("pick").disabled)el("pick").focus({preventScroll:true})}}
+document.addEventListener("keydown",e=>{if(!pOpen)return;if(e.key==="Tab")return;e.stopImmediatePropagation();
+  if(e.key==="Escape"){pick(false);return}
+  if(e.key==="ArrowDown"||e.key==="ArrowUp"){e.preventDefault();const r=[...el("psheet").querySelectorAll(".prow,#home")],i=r.indexOf(document.activeElement),n=r[Math.max(0,Math.min(r.length-1,i+(e.key==="ArrowDown"?1:-1)))];if(n)n.focus()}});
 /* registered before any episode starts, so it runs first: switching episodes stops the old episode's own click handler before it can see this click */
-document.addEventListener("click",e=>{const t=e.target.closest&&e.target.closest("[data-ep],#home,#zh");if(!t)return;
-  if(t.id==="home"){goHome();return}
+document.addEventListener("click",e=>{
+  if(pOpen){const t=e.target.closest("[data-ep],#home,#pclose");e.stopImmediatePropagation();
+    if(!e.target.closest("#psheet")||(t&&t.id==="pclose")){pick(false);return}
+    if(t&&t.id==="home"){pick(false);goHome();return}
+    if(t&&t.dataset.ep){const same=t.dataset.ep===gget("cur",null);pick(false);if(!same)openEp(t.dataset.ep)}
+    return}
+  const t=e.target.closest&&e.target.closest("[data-ep],#pick,#zh");if(!t)return;
+  if(t.id==="pick"){e.stopImmediatePropagation();if(cur)pick(true);return}
   if(t.dataset.ep){openEp(t.dataset.ep);return}
   if(t.id==="zh"&&!cur){gset("zh",!gget("zh",false));home()}});
 
@@ -489,7 +525,7 @@ function render(keep){
   $("segs").innerHTML=S.map((x,i)=>`<i class="${i<=st.i&&!cov?"on":""} ${i===NSTORY?"cut":""}"></i>`).join("");
   $("ep").textContent="S1 · E"+EP.n+(cov?"":" · ")+(cov?"":s.k==="story"?(s.i+1)+"/"+NSTORY:{fakeoff:"Vote",comments:"Comments",receipts:"Receipts",boss:"Question 1",cop:"Question 2",sat:"Hard Mode",done:"Done"}[s.k]);
   $("goal").innerHTML=THUMB[EP.n]?`<img src="${THUMB[EP.n]}" alt="">`:"";$("goal").classList.toggle("got",!!st.unlocked);
-  $("prev").disabled=st.i===0;$("next").disabled=!canNext();$("next").textContent=label();$("next").classList.toggle("ghost",(NEED.indexOf(s.k)>-1&&!(st[s.k]&&st[s.k].done))||needPick());
+  const first=st.i===0&&!(EP.cover&&st.go);$("prev").disabled=false;$("prev").setAttribute("aria-label",first?backLabel():"Back");$("prev").title=first?backLabel():"";$("next").disabled=!canNext();$("next").textContent=label();$("next").classList.toggle("ghost",(NEED.indexOf(s.k)>-1&&!(st[s.k]&&st[s.k].done))||needPick());
   $("stage").classList.toggle("zhon",zh);$("zh").setAttribute("aria-pressed",zh);
   $("live").textContent=$("view").innerText.slice(0,300);
   if(st.i>st.max){st.max=st.i;track("reach",{i:st.i})}
@@ -499,7 +535,7 @@ const QS=["boss","cop","sat"];
 // clear one question. An untouched question stays untouched, so the header button cannot use up the first Hard Mode try.
 function redoQ(k){if(!st[k]){render();return}if(k==="sat")st.satEver=true;st.redone=st.redone||{};st.redone[k]=true;st[k]=null;if(st.hints)delete st.hints[k];if(st.hintUsed)delete st.hintUsed[k];track("redo",{q:k});render()}
 function reset(){st={i:0,heart:null,boss:null,cop:null,sat:null,max:st.max,completed:st.completed,seen:st.seen,unlocked:st.unlocked,shiny:st.shiny,satEver:st.satEver||!!st.sat};render()}
-function go(d){rv=null;if(lockT){clearTimeout(lockT);lockT=null}if(d>0&&onCover()){st.go=true;track("start");render();return}if(d>0&&S[st.i].k==="done"){EP.n<12?openEp(epCode(EP.n+1)):goHome();return}const n=st.i+d;if(n<0||n>=S.length)return;if(d>0&&!canNext())return;const k0=S[st.i].k;if(d>0&&NEED.indexOf(k0)>-1&&!(st[k0]&&st[k0].done))track("skip",{q:k0});st.i=n;if(S[n].k==="done"&&!st.completed){st.completed=true;track("complete")}render()}
+function go(d){rv=null;if(lockT){clearTimeout(lockT);lockT=null}if(d>0&&onCover()){st.go=true;track("start");render();return}if(d<0&&st.i===0&&EP.cover&&st.go){st.go=false;render();return}if(d>0&&S[st.i].k==="done"){EP.n<12?openEp(epCode(EP.n+1),"next"):goHome();return}const n=st.i+d;if(n<0||n>=S.length)return;if(d>0&&!canNext())return;const k0=S[st.i].k;if(d>0&&NEED.indexOf(k0)>-1&&!(st[k0]&&st[k0].done))track("skip",{q:k0});st.i=n;if(S[n].k==="done"&&!st.completed){st.completed=true;track("complete")}render()}
 
 /* ---------- word sheet ---------- */
 let lastFocus=null,hideT=null;
@@ -555,7 +591,7 @@ on(document,"click",e=>{
     if(t.dataset.hi){const p=t.dataset.hi.split("|"),q=p[0],i=+p[1];st.hints=st.hints||{};const l=st.hints[q]=st.hints[q]||[],at=l.indexOf(i);if(at>-1)l.splice(at,1);else{l.push(i);st.hintUsed=st.hintUsed||{};st.hintUsed[q]=true;track("hint",{q:q,i:i})}render(true);return}
     if(t.dataset.tw){openWord(t.dataset.tw);return}
     if(t.dataset.w){openWord(t.dataset.w);return}
-    if(t.id==="next"){go(1);return} if(t.id==="prev"){go(-1);return}
+    if(t.id==="next"){go(1);return} if(t.id==="prev"){if(st.i===0&&!(EP.cover&&st.go)){leave();return}go(-1);return}
     if(t.id==="zh"){zh=!zh;gset("zh",zh);render(true);return}
     if(t.id==="redo"){const k=S[st.i].k;if(QS.indexOf(k)>-1)redoQ(k);else reset();return}
     if(t.dataset.heart!=null){const h=+t.dataset.heart;if(st.heart===h){st.heart=null;track("unheart",{i:h})}else{st.heart=h;track("heart",{i:h})}render(true);return}
