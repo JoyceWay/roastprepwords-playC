@@ -335,7 +335,10 @@ details.deep[open]>summary{margin-bottom:20px}
 .prow u{text-decoration:none;font-weight:800;color:var(--label)}.prow.got u{color:var(--good)}
 .psheet #home{width:100%;min-height:46px;cursor:pointer}
 .athome .view{padding-bottom:16px}
-.home .pitch{color:var(--ink);font-family:var(--display);font-weight:700;font-size:17px;line-height:1.3}.home .pitch2{color:var(--label);font-weight:700}.home .pitch+.zh{margin:-8px 0 0}.home .zh.pz2{color:var(--amber);font-weight:600;margin-top:-10px}
+.home .pitch{color:var(--ink);font-family:var(--display);font-weight:700;font-size:17px;line-height:1.3}.home .pitch2{color:var(--label);font-weight:700}/* first visit: three levels. The facts (ink, display face) behind a thin sunset bar; the Chinese as a small subtitle; the call to action in the accent colour.
+   The founder wanted the sunset colour and found coloured Chinese text heavy, so the colour sits in the bar and the Chinese stays quiet. */
+.home .pit{display:grid;gap:7px;padding:2px 0 2px 14px;border-left:3px solid var(--amber);border-image:linear-gradient(180deg,#FFB84D,#FF7A59 55%,#E0509A) 1}.home .pit p{margin:0}
+.home .pit .zh{font-size:13.5px;line-height:1.6}.home .pit .zh span{display:block}.home .zh.pz2{font-size:13.5px;line-height:1.5;margin-top:-12px}
 .hlist{display:grid;gap:8px}
 .hrow{display:grid;grid-template-columns:auto 1fr 18px;gap:12px;align-items:center;text-align:left;min-height:68px;padding:9px 12px;border-radius:16px;border:1.5px solid var(--line);background:var(--surface);color:inherit;font:inherit}
 .hrow img,.hrow i{width:46px;height:46px;border-radius:50%;filter:grayscale(1) blur(1.7px);opacity:.55;background:var(--line)}
@@ -381,7 +384,7 @@ function home(){
     return `<button type="button" class="hrow ${has?"got":""}" data-ep="${code}">${CTH[ep.n]?`<img class="cv" src="${CTH[ep.n]}" alt="" width="96" height="60" loading="lazy" decoding="async">`:THUMB[ep.n]?`<img src="${THUMB[ep.n]}" alt="">`:"<i></i>"}<span><small class="hn">Episode ${ep.n}${status?` · <em>${status}</em>`:""}</small><b>${hesc(open?ep.title:ep.tease)}</b>${zh?`<small>${hesc(open?ep.titleZh:ep.teaseZh)}</small>`:""}<small>${hesc(words)}</small></span><u aria-hidden="true">${has?"✓":"›"}</u></button>`}).join("");
   const first=ALL[epCode(1)];
   const started=Object.keys(ALL).some(code=>{const p=info(code);return p.has||p.status});   // a first-time visitor gets the pitch; a returning one gets the sticker count
-  el("view").innerHTML=`<article class="card sec home"><p class="eyebrow">Season 1 · 12 true stories</p><h1 class="h">${hesc(first.season)}</h1>${zh?`<p class="zh">${hesc(first.seasonZh)}</p>`:""}${started?`<p class="lead">Pick any episode. ${got} of 12 stickers earned.</p>`:`<p class="lead pitch">A horse that answered math questions. A king who woke up in front of a hundred people. A soda ad with a fighter jet for a prize.</p>${zh?`<p class="zh">一匹会答算术题的马。一个在一百个人面前起床的国王。一条汽水广告，镜头里的奖品是一架战斗机。</p>`:""}<p class="lead pitch2">All true. Guess first, then find out.</p>${zh?`<p class="zh pz2">都是真的。先猜，再看答案。</p>`:""}`}<div class="hlist">${rows}</div></article>`;
+  el("view").innerHTML=`<article class="card sec home"><p class="eyebrow">Season 1 · 12 true stories</p><h1 class="h">${hesc(first.season)}</h1>${zh?`<p class="zh">${hesc(first.seasonZh)}</p>`:""}${started?`<p class="lead">Pick any episode. ${got} of 12 stickers earned.</p>`:`<div class="pit"><p class="lead pitch">A horse that answered math questions. A king who woke up in front of a hundred people. A soda ad with a fighter jet for a prize.</p>${zh?`<p class="zh"><span>一匹会答算术题的马。</span><span>一个在一百个人面前起床的国王。</span><span>一条汽水广告，镜头里的奖品是一架战斗机。</span></p>`:""}</div><p class="lead pitch2">All true. Guess first, then find out.</p>${zh?`<p class="zh pz2">都是真的。先猜，再看答案。</p>`:""}`}<div class="hlist">${rows}</div></article>`;
   el("segs").innerHTML="";el("goal").innerHTML="";el("ep").textContent="Season 1";el("pick").disabled=true;el("stage").classList.add("athome");el("stage").classList.toggle("zhon",zh);el("zh").setAttribute("aria-pressed",zh);
 }
 function goHome(){if(cur){cur.stop();cur=null}gset("cur",null);gset("via",null);home()}
